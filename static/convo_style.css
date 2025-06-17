@@ -1,0 +1,417 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+#top_bar {
+    visibility: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 900px;
+    z-index: 100;
+    padding: 10px 15px;
+    gap: 20px;
+}
+
+#Search {
+    flex-grow: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    min-width: 0; 
+}
+
+#Search input {
+    flex: 1;
+}
+
+#notifications {
+    margin-left: auto;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+#notifications_ul {
+    max-height: 100px;
+    overflow-y: auto;
+}
+#hidden_notifications {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    display: none;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    min-width: 200px;
+}
+#notifications button {
+    background-color: transparent;
+    color: black;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#notifications button:hover {
+    color: rgb(234, 25, 25);
+    background-color: #b3a2a2;
+    border-radius: 8px;
+    transform: scale(1.1); 
+    transition: 0.2s ease;
+}
+#all_friends {
+    display: none;
+    border-radius:10px;
+}
+#both_btns {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+#search_friend_div {
+    display: none;
+}
+#stop_friend_search {
+    display: none;
+}
+
+input, button {
+    margin: 5px;
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    max-width: 100%; 
+}
+
+button {
+    cursor: pointer;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    text-align: center;
+}
+
+button:hover {
+    background-color: #357ab8;
+}
+
+
+#start, #Register, #Login, #Search, #See_friends, #Messaging, #Notifics {
+    display: none;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+}
+
+
+#start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    max-width: 320px;
+}
+
+
+#Register, #Login {
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+    max-width: 90vw; 
+}
+
+
+#Search {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    padding: 15px;
+    z-index: 100;
+    overflow-y: visible;
+    max-height: none; 
+    background-color: white;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+#close_search {
+    visibility: hidden;
+}
+#stop_friendCheck {
+    display: none;
+}
+
+#friends_list {
+    display: none;
+    max-height: 230px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #fefefe;
+    margin-top: 10px;
+}
+
+
+#chat_wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+    margin-top: 180px;
+    box-sizing: border-box;
+    padding: 0 10px;
+}
+
+
+#scrollable_div {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin: 5px 0;
+    padding: 8px;
+    background-color: #e9f0fb;
+    border-radius: 6px;
+    word-wrap: break-word;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+#See_friends {
+    display: none;
+    width: 45%;
+    max-height: 450px;
+    overflow-y: auto;
+    align-self: flex-start;
+    box-sizing: border-box;
+}
+
+
+#Messaging {
+    display: none;
+    width: 45%;
+    align-self: flex-start;
+    box-sizing: border-box;
+}
+
+
+#message_controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#message_controls button {
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #4a90e2;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+}
+
+#message_controls button:hover {
+    background-color: #357ab8;
+}
+
+
+#Messaging input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+#friend_status {
+    color: green;
+    margin-top: 10px;
+}
+
+
+#notifics_ul li {
+    background-color: #ffe0e0;
+    color: red;
+}
+
+
+#See_friends ul li button {
+    margin-left: auto;
+}
+
+
+#Search button {
+    float: right;
+}
+
+#both_btns button, #search_friend_div button {
+    flex: 1;
+    width: 100%;
+    max-width: none;
+}
+#stop_friendCheck,
+#search_friend_btn {
+    height: 40px;        
+    flex-grow: 0;         
+    align-self: flex-start; 
+}
+
+
+
+@media screen and (max-width: 500px) {
+ 
+    #Search {
+        width: 85%;
+        max-width: none;
+        left: 43%;
+        transform: translateX(-50%);
+        top: 5px;
+        padding: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    #friends_list {
+        max-height: 250px;
+    }
+
+
+    #chat_wrapper {
+        flex-direction: column;
+        align-items: center;
+        margin-top: 140px;
+        width: 100%;
+        padding: 0 10px;
+        max-width: 100vw;
+    }
+
+    #See_friends, #Messaging {
+        width: 100%;
+        max-width: none;
+        max-height: 300px;
+        margin-bottom: 15px;
+    }
+
+
+    #Messaging input {
+        width: 100%;
+        font-size: 1.1rem;
+    }
+
+ 
+    #message_controls {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    #message_controls button {
+        flex: 1;
+        font-size: 1.1rem;
+        padding: 10px 0;
+        text-align: center;
+    }
+
+
+    #Register, #Login {
+        width: 95%;
+        max-width: none;
+    }
+
+    #Search button {
+        float: right;
+    }
+
+ 
+    #See_friends ul li button {
+        margin-left: auto;
+    }
+
+    #notifications {
+        margin-right: -6px;
+    }
+    #hidden_notifications {
+        position: fixed;       
+        top: 11vh;            
+        left: 50%;            
+        transform: translate(-50%, -50%);  
+        width: 90vw;       
+        height: auto;       
+        background: white;  
+        z-index: 1000;      
+        overflow-y: auto;   
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        border-radius: 10px; 
+        padding: 15px;       
+    }
+    #hidden_notifications button:hover {
+        color: rgb(234, 25, 25);
+        background-color: #b3a2a2;
+    }
+}

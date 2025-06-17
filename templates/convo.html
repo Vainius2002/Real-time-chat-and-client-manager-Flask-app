@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chat It Up</title>
+        <!-- su script, importinu socket.io library i javascript-->
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='convo_style.css') }}">
+    </head>
+    <body>
+        <div id="start">
+            <button onclick="reg()">Register</button>
+            <button onclick="log()">Login</button>
+        </div>
+        <div id="Register">
+            <input id="create_nickname" placeholder="Create Your Nickname">
+            <input id="create_pass" type="password" placeholder="Create Your Password">
+            <button id="submit_creation" onclick="send_register()">submit</button>
+
+            <button onclick="back_r()">back</button>
+            <p id="alert"></p>
+        </div>
+
+        <div id="Login">
+            <input id="login_nickname" placeholder="Enter username">
+            <input id="login_password" type="password" placeholder="Enter password">
+            <button id="submit_login" onclick="send_login()">submit</button>
+            <button onclick="back_l()">back</button>
+            <ul id="alert2"></ul>
+        </div>
+        <div id="top_bar">
+            <div id="Search">
+                <input type="text" placeholder="Search friends" id="search_input">
+                <button onclick="find_friends()">Find</button>
+                <button onclick="close_friends()" id="close_search">Close</button>
+                <ul id="friends_list"></ul>
+                <h4 id="friend_status"></h4>
+            </div>
+            <div id="notifications">
+                <button onclick="display_notifications()">🔔</button>
+                <div id="hidden_notifications">
+                    <p>Notifications From:</p>
+                    <ul id="notifications_ul"></ul>
+                    <button onclick="close_notifications()">❌</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="chat_wrapper">
+            <div id="See_friends">
+                <div id="both_btns">
+                    <div id="search_friend_div">
+                        <input id="search_friendlist" placeholder="Find friend">
+                        <button id="search_friend_btn" onclick="search_friendlist()">Find</button>
+                        <button id="stop_friend_search" onclick="check_friendlist()">Back</button>
+                    </div>
+
+                    <button id="check_friendlist" onclick="check_friendlist()">Friend list</button>
+                    <button id="stop_friendCheck" onclick="stop_checking()">Close</button>
+                </div>
+                <ul id="all_friends"></ul>
+            </div>
+            <div id="Messaging">
+                <div id="scrollable_div">
+                    <ul id="all_msg"></ul>
+                    <input type="text" placeholder="Insert message" id="inputted_msg">
+                    <div id="message_controls">
+                        <button onclick="send_msg()">send</button>
+                        <button onclick="back_m()">back</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+
+        <script>
+            const conn = io(); //assigning socketio to conn
+
+            let logged_user_n = ''; //adding currently logged people globally to the set for other function to use in emit to server
+            conn.on("logged_users_name", function(name) {
+                logged_user_n = '';
+                logged_user_n = name;
+                console.log(logged_user_n);
+            });
+
+            //displaying the disappearance and appearance of divs on certain button clicks for convenience purposes
+            function reg() {
+                document.getElementById("Register").style.display = "block";
+                document.getElementById("start").style.display = "none";
+            }
+            function log() {
+                document.getElementById("Login").style.display = "block";
+                document.getElementById("start").style.display = "none";
+            }
+            function back_r () {
+                document.getElementById("start").style.display = "block";
+                document.getElementById("Register").style.display = "none";
+            }
+            function back_l () {
+                document.getElementById("start").style.display = "block";
+                document.getElementById("Login").style.display = "none";
+            }
+
+
+            // for automatic scroll down to happen once a message is received.
+            const scroll_down = document.getElementById("scrollable_div");
+
+            //logic for sneding out register name and password inputs to the server
+            function send_register() {
+                const username = document.getElementById("create_nickname").value.trim();
+                const password = document.getElementById("create_pass").value.trim();
+
+                if (username.length > 0 && password.length > 0) { //if both username and password is less than 0 in characters, it wont emit register info
+                    conn.emit("register", {
+                        username: username,
+                        password: password
+                    });
+                } else {
+                    const alertBox = document.getElementById("alert"); //i display an alert
+                    alertBox.textContent = "Username and password must each be at least 1 character.";
+                    alertBox.style.color = "red";
+                    alertBox.style.display = "block";
+                    setTimeout(() => {
+                        alertBox.style.display = "none";
+                    }, 3000);
+            }}
+
+            // handling server replies
+            conn.on("already_exists", function(msg) {
+                const alertBox = document.getElementById("alert");
+                alertBox.textContent = msg;
+                alertBox.style.color = "red";
+                alertBox.style.display = "block";
+                setTimeout(() => { alertBox.style.display = "none"; }, 3000);
+            });
+
+            conn.on("register_success", function(msg) {
+                const alertBox = document.getElementById("alert");
+                alertBox.textContent = msg;
+                alertBox.style.color = "green";
+                alertBox.style.display = "block";
+                
+                document.getElementById("Register").style.display = "none";
+                document.getElementById("Login").style.display = "block";
+                setTimeout(() => {
+                    alertBox.textContent = "";
+                }, 3000);
+            });
+
+
+            //sending out login inputs
+            function send_login() {
+                const log_name = document.getElementById("login_nickname").value.trim();
+                const log_pass = document.getElementById("login_password").value.trim();
+                conn.emit("html_login", {"login_name" : log_name, "login_pass" : log_pass})
+            }
+            
+                
+            //receiving whether that user was not found in the db from server and displaying alert(notification)
+            conn.on("not_found", function(data) {
+                const alert_box = document.getElementById("alert2");
+                const not_found = document.createElement("li");
+                alert_box.innerHTML = '';
+                alert_box.style.color = "red";
+                alert_box.textContent = data;
+                alert_box.style.display = "block";
+                setTimeout(() => {
+                    alert_box.style.display = "none";
+                }, 3000);
+
+            });
+
+            //same idea
+            conn.on("login_fail", function(data) {
+                const alert_box = document.getElementById("alert2");
+                const not_found = document.createElement("li");
+                alert_box.innerHTML = '';
+                alert_box.style.display = "block";
+                alert_box.textContent = data;
+                alert_box.style.color = "red";
+                setTimeout(() => {
+                    alert_box.style.display = "none";
+                }, 3000);
+            });
+
+            //same idea, but if its a success, then all other divs of this user like search, see friends is accessable = you logged in
+            conn.on("login_suc", function(data) {
+                const alert_box = document.getElementById("alert2");
+                const found = document.createElement("li");
+                alert_box.innerHTML = '';
+
+                found.textContent = data;
+                alert_box.appendChild(found);
+                document.getElementById("top_bar").style.visibility = 'visible';
+                document.getElementById("Search").style.display = "block";
+            
+                document.getElementById("See_friends").style.display = "block";
+
+                document.getElementById("Login").style.display = "none";
+                
+                conn.emit("delete_currently", "del"); //after log in, client asks server to check if he has any notifications, also deletes currently
+                
+            });
+
+            function display_notifications() {
+                document.getElementById("notifications").style.backgroundColor = "white";
+                document.getElementById("hidden_notifications").style.display = 'block';
+                document.getElementById("notifications_ul").style.display = "block";
+            }
+            function close_notifications() {
+                document.getElementById("hidden_notifications").style.display = "none";
+            }
+
+
+            //sending out a request to search for friends with an input of who he is searching for
+            function find_friends() {
+                document.getElementById("close_search").style.visibility = "visible";
+                document.getElementById("friends_list").style.display = "block";
+                document.getElementById("friend_status").style.display = "block";
+                const input_friends = document.getElementById("search_input").value.trim();
+                
+                //now i send out not only input of the search, but also who's searcing, so that in the users list, i wouldnt send the list with clients own name
+                conn.emit("friend_search", {"search_input" : input_friends, "whos_searching" : logged_user_n});
+                
+            };
+            //if a button is clicked, it "closes" - stops displaying friend list and status
+            function close_friends() {
+                document.getElementById("close_search").style.visibility = "hidden";
+                document.getElementById("friends_list").style.display = "none";
+                document.getElementById("friend_status").style.display = "none";
+            };
+            // receiving rows from server sqlite db of all users in a list 
+            conn.on("emit_rows", function(data) {
+                const search_list = document.getElementById("friends_list");
+                // automatically deletes search list in case user is searching for users list again (so that list wouldnt compound)
+                search_list.innerHTML = '';
+
+                // using for each since data is a list of users
+                data.forEach(function (usernames) {
+                    const search_row = document.createElement("li"); //automatically creating li elements to store these users in
+                    search_row.textContent = usernames; //adding the textcontent of these users to those li elements
+
+                    const search_btn = document.createElement("button"); //creating button in the foreach for each user to have their own btn
+                    search_btn.textContent = "Add friend";
+                    search_btn.onclick = function() {
+
+                        conn.emit("added_friend", usernames); //if add friend btn is clicked it emits added friend and waits for server to send data
+
+                        const friend_stats = document.getElementById("friend_status");
+                        friend_stats.textContent = "";
+                    
+                        conn.on("added_friend", function(data) {
+                            friend_stats.style.visibility = "block";
+                            friend_stats.textContent = data;  //if user wasnt in friends column, then the friend_stats alert displays it
+                        });
+
+                        conn.on("already_friend", function(data) {
+                            friend_stats.style.visibility = "block";
+                            friend_stats.textContent = data;  //otherwise it displays friend is already in the friendlist
+                        });
+
+                    };
+                    
+                    //appends these users to a created li element, who also has a btn appended to it and then all of those are appended to a ul element
+                    search_row.appendChild(search_btn);
+                    search_list.appendChild(search_row);
+                });
+            });
+
+        
+        function stop_checking() {
+            document.getElementById("all_friends").style.display = "none";
+            document.getElementById("stop_friendCheck").style.display = "none";
+            document.getElementById("check_friendlist").style.display = "block"; 
+            document.getElementById("search_friend_div").style.display = "none";           
+        };
+
+        
+
+        const received_indicator = new Set(); // received messages from certain users indicator
+        function check_friendlist() {
+            document.getElementById("all_friends").style.display = "block";
+            document.getElementById("stop_friendCheck").style.display = "block";
+            document.getElementById("check_friendlist").style.display = "none";
+            document.getElementById("search_friend_div").style.display = "block";
+            document.getElementById("stop_friend_search").style.display = "none";
+            
+
+            conn.emit("requesting_friendlist", "give_me");  //if client clicks check friends, an emit is sent out to server for server to send out friendlist
+        };
+
+        function search_friendlist() {
+            const inputted = document.getElementById("search_friendlist").value.trim();
+            document.getElementById("all_friends").style.display = "block";
+            document.getElementById("stop_friend_search").style.display = "block";
+
+            conn.emit("search_friends", inputted);
+        }
+
+        
+
+        let currently_chatting_with = new Set();
+        let currently_chatting_with2 = new Set(); // declaring globally to make sure UI doesnt pop up of another friend if i get the messages
+        const clicked_friends = new Set();   // declarinu globally, kad pasiektu send onclikc funkcija issius zinutei i draugo varda. 
+        let friends_in_set = new Set(); //sukuriu seta, kad iterpciau draugus for each loope i si seta, ir acessinciau globally gaunant notification zinutes (draugo varda)
+        let friends_username = "";
+        conn.on("display_friends", function(data) {  //getting a friend list from server and db
+            const friends = data.friends;
+
+            const unordered_friends_list = document.getElementById("all_friends");
+            unordered_friends_list.style.display = "block";
+            unordered_friends_list.innerHTML = '';
+        
+            friends.forEach(function(chopped_data) {
+                const friends_listed = document.createElement("li");
+                const select_chat = document.createElement("button");  //creating elements of li and buttons
+                
+                friends_in_set.clear();
+                friends_in_set.add(chopped_data);
+
+
+                select_chat.textContent = "Chat";
+                select_chat.onclick = function() { //onclicking chat you emit request chat history and server sends out your chat history with this person
+
+
+                    currently_chatting_with.clear();
+                    currently_chatting_with.add(chopped_data[0]); //string
+                    console.log(currently_chatting_with);
+
+                    currently_chatting_with2.clear(); 
+                    currently_chatting_with2.add(chopped_data);
+                    console.log(currently_chatting_with2);
+                    
+
+                    let converted_array = Array.from(currently_chatting_with2);
+                    conn.emit("currently_chatting", converted_array); //emiting friends name, for notification logic
+
+
+                    // assigning the persons name as to whom i had started chatting to in order to not display the notification to the person you are talking atm.
+                    clicked_friends.add(chopped_data[0]);
+                    unordered_friends_list.innerHTML = "";
+                    document.getElementById("Messaging").style.display = "block";
+
+
+                    friends_username = chopped_data[0];
+
+                    
+                    conn.emit("request_chat_history", friends_username);
+                    
+                };
+                
+                friends_listed.textContent = chopped_data;
+                friends_listed.appendChild(select_chat);
+                unordered_friends_list.appendChild(friends_listed);  //adding elements to a ul to be seen            
+            });
+        });
+        function back_m() {
+            document.getElementById("Messaging").style.display = "none";
+            currently_chatting_with.clear();
+            currently_chatting_with2.clear();
+            const all_fr = document.getElementById("all_friends").innerHTML = '';
+            check_friendlist();
+
+            conn.emit("delete_currently", "del");
+        }
+
+
+        conn.on("friends_narrowed", function(data) {
+            const ul = document.getElementById("all_friends");
+
+            if(data.length > 0) {
+                ul.innerHTML = '';
+                
+                data.forEach(function (fored_friends) {
+                    const li = document.createElement("li");
+                    const chat_btn = document.createElement("button");
+                    chat_btn.textContent = "Chat";
+                    
+                    li.textContent = fored_friends;
+                    li.appendChild(chat_btn);
+                    ul.appendChild(li);
+                    
+                    chat_btn.onclick = function() {
+                        ul.style.display = "none";
+
+                        currently_chatting_with.clear();
+                        currently_chatting_with.add(fored_friends);
+                        console.log(currently_chatting_with);
+        
+                        currently_chatting_with2.clear(); 
+                        currently_chatting_with2.add([fored_friends]);
+                        let converted_array = Array.from(currently_chatting_with2);
+                        console.log(currently_chatting_with2);
+                        
+                        conn.emit("currently_chatting", converted_array);
+                        conn.emit("request_chat_history", fored_friends);
+                    }
+    
+                });
+            }
+            else {
+                console.log("Not found. Skipping.")
+            }
+        });
+
+
+
+
+        
+        // on onclick it will send out clients message to friend he's chatting with. He will acess that friends name since its in a set thats declared
+        //globally
+        function send_msg() {
+            const senders_name = logged_user_n;
+            written_msg = document.getElementById("inputted_msg").value.trim();
+
+            // kad chatuose matytu kas siunte zinute, siunciam ne tik zinute, o ir userio varda kuris siuncia
+            conn.emit("sending_msg_js", {"sender" : senders_name, "message" : written_msg, "sending_to" : friends_username});
+
+            document.getElementById("inputted_msg").value = "";
+            
+            //adding small timeouts to make sure emit doesnt encounter problems
+            setTimeout(() => {
+                conn.emit("request_chat_history", friends_username);
+            }, 100);
+            scroll_down.scrollTop = scroll_down.scrollHeight;  //adding an automatic scroll once a message is sent out so that you wouldnt need to scroll down after each msg
+
+        };
+        
+        // always listening for upcoming messages in case my friend is writing me, and i will see those messages instantly in the chat history div
+        conn.on("msg_from_server", function(message_data) {
+            const msg_sender = message_data.senders_name;
+            const recipient = message_data.recipient;
+
+            if(recipient === logged_user_n) { 
+                
+                if (currently_chatting_with.has(msg_sender)) {
+                    document.getElementById("Messaging").style.display = "block";
+
+                    
+                    const ul_chats = document.getElementById("all_msg");
+                    ul_chats.innerHTML = ""; // Clear previous chat history
+                    
+                    
+                    message_data.message.forEach(function (msg) {
+                        const li_chat_history = document.createElement("li");
+                        li_chat_history.textContent = msg;
+                        
+                        ul_chats.appendChild(li_chat_history);
+                        
+                    });
+                    scroll_down.scrollTop = scroll_down.scrollHeight;
+                    }
+
+                else (console.log("message received from another friend."));
+                };
+        });
+
+
+        conn.on("notification_update", function(data) {
+            const notif_div = document.getElementById("notifications");
+            const notifics = document.getElementById("hidden_notifications");
+            const notifics_ul = document.getElementById("notifications_ul");
+            notifics_ul.innerHTML = '';
+            notifics_ul.style.color = "red";
+
+            if (data.length > 0) {
+                notif_div.style.backgroundColor = "red";            
+            }
+            else {
+                notifics_ul.style.display = "none";
+                notif_div.style.backgroundColor = "white";
+            }
+            data.forEach(function(fored_data) {
+                const friends_wrote = document.createElement("li");
+
+                friends_wrote.textContent = fored_data;
+                notifics_ul.appendChild(friends_wrote);
+                
+            });
+        });
+
+
+        </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
