@@ -22,7 +22,7 @@ conn = sqlite3.connect("prisijungimai.db")
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE IF NOT EXISTS prisijungimai (id INTEGER PRIMARY KEY, vardas TEXT, slaptazodis TEXT, filename2 file)")
 conn.commit()
-conn.close()
+
 print("sukurta prisijungimai.")
 
 cursor.execute("INSERT INTO prisijungimai (vardas, slaptazodis) VALUES (?, ?)", ("admin", "123"))
@@ -455,6 +455,3 @@ if __name__ == "__main__":
     socketio.run(web, debug=True)
 
 
-
-# sunkiausia dalis viskas kas susije su os kadangi reik dar mokintis apie library 144 eil.
-# bei stipriai strigau kol nesupratau return jsonify virs manes, nes nezinojau kodel gaudavau error, o pasirodo turi buti kazkoks return
